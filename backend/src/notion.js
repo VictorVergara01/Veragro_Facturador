@@ -84,6 +84,7 @@ async function getLineItems(notion, pageId) {
       ?? '';
 
     return {
+      id: item.id,
       sku,
       descripcion,
       cantidad: p['Cantidad']?.number ?? 0,
@@ -204,4 +205,64 @@ function computeNextNumber(prefix, allNumbers) {
   return `${prefix}-${String(max + 1).padStart(3, '0')}`;
 }
 
-module.exports = { createNotionClient, listDocuments, getDocument, computeNextNumber, createDocument };
+async function updateDocument(notion, pageId, updates) {
+  const props = {};
+  if (updates.estado) props['Estado'] = { select: { name: updates.estado } };
+  if (updates.notas !== undefined) {
+    props['Notas'] = { rich_text: updates.notas ? [{ text: { content: updates.notas } }] : [] };
+  }
+  if (updates.fecha) props['Fecha'] = { date: { start: updates.fecha } };
+
+  return notion.pages.update({ page_id: pageId, properties: props });
+}
+
+async function addLineItem(notion, pageId, { sku, descripcion, cantidad, precio, descuento }) {
+  const blocks = await notion.blocks.children.list({ block_id: pageId });
+  const dbBlock = blocks.results.find(b => b.type === 'child_database');
+  if (!dbBlock) throw new Error('No se encontró la sub-BD de líneas en esta factura');
+
+  const page = await notion.pages.create({
+    parent: { database_id: dbBlock.id },
+    properties: {
+      'Producto': { title: [{ text: { content: descripcion || '' } }] },
+      'SKU': { rich_text: [{ text: { content: sku || '' } }] },
+      'Cantidad': { number: Number(cantidad) || 0 },
+      'Precio c/u': { number: Number(precio) || 0 },
+      'Descuento %': { number: Number(descuento) || 0 },
+    },
+  });
+
+  return {
+    id: page.id,
+    sku: sku || '',
+    descripcion: descripcion || '',
+    cantidad: Number(cantidad) || 0,
+    precio: Number(precio) || 0,
+    descuento: Number(descuento) || 0,
+  };
+}
+
+async function updateLineItem(notion, lineId, updates) {
+  const props = {};
+  if (updates.cantidad !== undefined) props['Cantidad'] = { number: Number(updates.cantidad) };
+  if (updates.precio !== undefined) props['Precio c/u'] = { number: Number(updates.precio) };
+  if (updates.descuento !== undefined) props['Descuento %'] = { number: Number(updates.descuento) };
+  if (updates.descripcion !== undefined) {
+    props['Producto'] = { title: [{ text: { content: updates.descripcion } }] };
+  }
+  if (updates.sku !== undefined) {
+    props['SKU'] = { rich_text: [{ text: { content: updates.sku } }] };
+  }
+
+  return notion.pages.update({ page_id: lineId, properties: props });
+}
+
+async function deleteLineItem(notion, lineId) {
+  return notion.pages.update({ page_id: lineId, archived: true });
+}
+
+module.exports = {
+  createNotionClient, listDocuments, getDocument,
+  computeNextNumber, createDocument,
+  updateDocument, addLineItem, updateLineItem, deleteLineItem,
+};

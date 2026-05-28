@@ -1,7 +1,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { createNotionClient, listDocuments, getDocument, createDocument } = require('./notion');
+const {
+  createNotionClient, listDocuments, getDocument, createDocument,
+  updateDocument, addLineItem, updateLineItem, deleteLineItem,
+} = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
 const { listClientes } = require('./clientes');
@@ -58,6 +61,46 @@ app.post('/api/documentos', async (req, res) => {
     }
     const result = await createDocument(notion, { tipo, clienteId, fecha, notas });
     res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/documentos/:id', async (req, res) => {
+  try {
+    await updateDocument(notion, req.params.id, req.body);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/documentos/:id/lineas', async (req, res) => {
+  try {
+    const linea = await addLineItem(notion, req.params.id, req.body);
+    res.json(linea);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/lineas/:id', async (req, res) => {
+  try {
+    await updateLineItem(notion, req.params.id, req.body);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/lineas/:id', async (req, res) => {
+  try {
+    await deleteLineItem(notion, req.params.id);
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

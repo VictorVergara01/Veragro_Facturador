@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import TablaLineas from '../components/TablaLineas';
 import Totales from '../components/Totales';
+import { useToast } from '../components/Toast';
 
 const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
 const ESTADO_STYLE = {
@@ -23,14 +24,20 @@ export default function Factura() {
   const [metodoPago, setMetodoPago] = useState('');
   const [metodosOpciones, setMetodosOpciones] = useState([]);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   async function handleEstadoChange(estado) {
     setDoc(prev => ({ ...prev, estado }));
-    await fetch(`/api/documentos/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ estado }),
-    }).catch(() => {});
+    try {
+      await fetch(`/api/documentos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado }),
+      });
+      showToast(`Estado: ${estado}`);
+    } catch {
+      showToast('Error al cambiar estado', 'error');
+    }
   }
 
   useEffect(() => {
@@ -51,7 +58,6 @@ export default function Factura() {
   async function handleDownloadPDF() {
     setGenerating(true);
     try {
-      // subtotalBruto = suma de líneas con descuento por línea, antes del descuento global
       const subtotalBruto = Math.round(doc.lineas.reduce((s, l) => {
         const d = l.descuento ?? 0;
         return s + l.cantidad * l.precio * (1 - d / 100);
@@ -63,7 +69,7 @@ export default function Factura() {
         fetch('/api/pdf', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ notionId: id, descuento, itbms, formato }),
+          body: JSON.stringify({ notionId: id, descuento, itbms, formato, metodoPago }),
         }),
         fetch(`/api/documentos/${id}`, {
           method: 'PUT',
@@ -88,8 +94,9 @@ export default function Factura() {
       a.download = `${doc.numero}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
+      showToast(`PDF descargado: ${doc.numero}`);
     } catch (e) {
-      alert(`Error: ${e.message}`);
+      showToast(`Error: ${e.message}`, 'error');
     } finally {
       setGenerating(false);
     }

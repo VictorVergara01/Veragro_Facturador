@@ -110,12 +110,16 @@ export default function EditarFactura() {
     }
   }
 
-  async function handleDeleteDocument() {
-    if (!confirm(`¿Eliminar ${doc.numero}? Esta acción no se puede deshacer.`)) return;
+  async function handleCancelDocument() {
+    if (!confirm(`¿Marcar ${doc.numero} como Cancelada?`)) return;
     try {
-      const resp = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
+      const resp = await fetch(`/api/documentos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ estado: 'Cancelada' }),
+      });
       if (!resp.ok) throw new Error((await resp.json()).error);
-      navigate('/');
+      setDoc(prev => ({ ...prev, estado: 'Cancelada' }));
     } catch (e) {
       alert(`Error: ${e.message}`);
     }
@@ -393,10 +397,10 @@ export default function EditarFactura() {
           <div className="flex items-center gap-4">
             <span className="text-xs text-gray-400">{lineas.length} línea{lineas.length !== 1 ? 's' : ''}</span>
             <button
-              onClick={handleDeleteDocument}
+              onClick={handleCancelDocument}
               className="text-xs text-red-400 hover:text-red-600 underline transition-colors"
             >
-              Eliminar documento
+              Cancelar documento
             </button>
           </div>
         </div>

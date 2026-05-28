@@ -270,12 +270,8 @@ async function deleteLineItem(notion, lineId) {
   return notion.pages.update({ page_id: lineId, archived: true });
 }
 
-async function deleteDocument(notion, pageId) {
-  return notion.pages.update({ page_id: pageId, archived: true });
-}
-
 module.exports = {
   createNotionClient, listDocuments, getDocument,
   computeNextNumber, createDocument,
-  updateDocument, addLineItem, updateLineItem, deleteLineItem, deleteDocument,
+  updateDocument, addLineItem, updateLineItem, deleteLineItem,
 };

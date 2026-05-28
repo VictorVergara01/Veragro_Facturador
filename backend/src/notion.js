@@ -224,8 +224,17 @@ async function updateDocument(notion, pageId, updates) {
     props['Notas'] = { rich_text: updates.notas ? [{ text: { content: updates.notas } }] : [] };
   }
   if (updates.fecha) props['Fecha'] = { date: { start: updates.fecha } };
+  if (updates.descuento !== undefined) props['Descuento'] = { number: Number(updates.descuento) };
+  if (updates.subtotal !== undefined) props['Subtotal'] = { number: Number(updates.subtotal) };
+  if (updates.metodoPago) props['Método de pago'] = { select: { name: updates.metodoPago } };
 
   return notion.pages.update({ page_id: pageId, properties: props });
+}
+
+async function getMetodoPagoOpciones(notion) {
+  const db = await notion.databases.retrieve({ database_id: process.env.NOTION_DB_VENTAS });
+  const prop = db.properties['Método de pago'];
+  return prop?.select?.options?.map(o => o.name) ?? [];
 }
 
 async function addLineItem(notion, pageId, { sku, descripcion, cantidad, precio, descuento }) {
@@ -277,4 +286,5 @@ module.exports = {
   createNotionClient, listDocuments, getDocument,
   computeNextNumber, createDocument,
   updateDocument, addLineItem, updateLineItem, deleteLineItem,
+  getMetodoPagoOpciones,
 };

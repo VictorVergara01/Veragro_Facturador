@@ -4,6 +4,7 @@ const cors = require('cors');
 const {
   createNotionClient, listDocuments, getDocument, createDocument,
   updateDocument, addLineItem, updateLineItem, deleteLineItem,
+  getMetodoPagoOpciones,
 } = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
@@ -17,6 +18,16 @@ app.use(express.json());
 const notion = createNotionClient();
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+app.get('/api/opciones/metodo-pago', async (req, res) => {
+  try {
+    const opciones = await getMetodoPagoOpciones(notion);
+    res.json(opciones);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/clientes', async (req, res) => {
   try {

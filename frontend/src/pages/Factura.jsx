@@ -20,6 +20,8 @@ export default function Factura() {
   const [itbms, setItbms] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [formato, setFormato] = useState('Letter');
+  const [metodoPago, setMetodoPago] = useState('');
+  const [metodosOpciones, setMetodosOpciones] = useState([]);
   const navigate = useNavigate();
 
   async function handleEstadoChange(estado) {
@@ -32,6 +34,13 @@ export default function Factura() {
   }
 
   useEffect(() => {
+    fetch('/api/opciones/metodo-pago')
+      .then(r => r.json())
+      .then(setMetodosOpciones)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     fetch(`/api/documentos/${id}`)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(setDoc)
@@ -42,16 +51,35 @@ export default function Factura() {
   async function handleDownloadPDF() {
     setGenerating(true);
     try {
-      const resp = await fetch('/api/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notionId: id, descuento, itbms, formato }),
-      });
-      if (!resp.ok) {
-        const err = await resp.json();
+      // Calcular subtotal para guardar en Notion
+      const subtotalBruto = doc.lineas.reduce((s, l) => {
+        const d = l.descuento ?? 0;
+        return s + l.cantidad * l.precio * (1 - d / 100);
+      }, 0);
+      const subtotal = Math.round((subtotalBruto * (1 - descuento / 100)) * 100) / 100;
+
+      const [pdfResp] = await Promise.all([
+        fetch('/api/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ notionId: id, descuento, itbms, formato }),
+        }),
+        fetch(`/api/documentos/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            descuento,
+            subtotal,
+            ...(metodoPago ? { metodoPago } : {}),
+          }),
+        }),
+      ]);
+
+      if (!pdfResp.ok) {
+        const err = await pdfResp.json();
         throw new Error(err.error || 'Error generando PDF');
       }
-      const blob = await resp.blob();
+      const blob = await pdfResp.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -193,6 +221,21 @@ export default function Factura() {
               <label htmlFor="itbms" className="text-sm cursor-pointer select-none">
                 Aplicar ITBMS 7%
               </label>
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-wider text-gray-500 block mb-1.5">
+                Método de pago
+              </label>
+              <select
+                value={metodoPago}
+                onChange={e => setMetodoPago(e.target.value)}
+                className="border border-gray-300 bg-white px-2 py-1.5 font-mono text-sm focus:outline-none focus:border-black"
+              >
+                <option value="">— Sin especificar</option>
+                {metodosOpciones.map(o => (
+                  <option key={o} value={o}>{o}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="text-xs uppercase tracking-wider text-gray-500 block mb-1.5">

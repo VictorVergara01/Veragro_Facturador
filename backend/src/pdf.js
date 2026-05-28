@@ -18,7 +18,7 @@ function buildHTML(data) {
     numero, tipoLabel, cliente, ruc, direccion, telefono, email,
     fecha, estado, notas, referencia,
     lineas, subtotalBruto, descuentoAmt, itbmsAmt, total,
-    descuento, applyItbms, qrDataUrl,
+    descuento, applyItbms, qrDataUrl, metodoPago,
   } = data;
 
   const hasLineDiscounts = lineas.some(l => (l.descuento ?? 0) > 0);
@@ -58,6 +58,15 @@ function buildHTML(data) {
 
   const notasBlock = notas
     ? `<p style="margin-top:10px;font-style:italic">${esc(notas)}</p>`
+    : '';
+
+  const banco = process.env.EMPRESA_BANCO ?? 'Banco General';
+  const tipoCuenta = process.env.EMPRESA_TIPO_CUENTA ?? 'Corriente';
+  const cuenta = process.env.EMPRESA_CUENTA ?? '04-88-888888-8';
+  const cuentaNombre = process.env.EMPRESA_CUENTA_NOMBRE ?? 'AgroTech Drones S.A.';
+  const yappy = process.env.EMPRESA_YAPPY ?? '+507 6000-0000';
+  const metodoPagoBlock = metodoPago
+    ? `<div class="prow" style="margin-top:6px"><span class="pk">Método de pago:</span> ${esc(metodoPago)}</div>`
     : '';
 
   return `<!DOCTYPE html>
@@ -175,10 +184,11 @@ td{padding:6px;border-bottom:1px solid #e8e8e8;font-size:11px}
 <div class="pqr">
   <div>
     <div class="plabel">Información de Pago</div>
-    <div class="prow"><span class="pk">Banco General</span></div>
-    <div class="prow">Cuenta Corriente: 04-88-888888-8</div>
-    <div class="prow">A nombre de: AgroTech Drones S.A.</div>
-    <div class="prow" style="margin-top:6px"><span class="pk">Yappy:</span> +507 6000-0000</div>
+    <div class="prow"><span class="pk">${esc(banco)}</span></div>
+    <div class="prow">Cuenta ${esc(tipoCuenta)}: ${esc(cuenta)}</div>
+    <div class="prow">A nombre de: ${esc(cuentaNombre)}</div>
+    <div class="prow" style="margin-top:6px"><span class="pk">Yappy:</span> ${esc(yappy)}</div>
+    ${metodoPagoBlock}
     ${notasBlock}
   </div>
   <div>

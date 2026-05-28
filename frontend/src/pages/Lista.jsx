@@ -7,6 +7,24 @@ const TIPO_STYLE = {
   SER: { label: 'Servicio', color: '#2a7a2a' },
 };
 
+const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
+
+const ESTADO_STYLE = {
+  Borrador: 'text-gray-400',
+  Enviada:  'text-blue-600',
+  Pagada:   'text-green-700',
+  Cancelada: 'text-red-500',
+};
+
+async function patchEstado(id, estado) {
+  const resp = await fetch(`/api/documentos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ estado }),
+  });
+  if (!resp.ok) throw new Error((await resp.json()).error);
+}
+
 export default function Lista() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +37,16 @@ export default function Lista() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleEstadoChange(docId, estado) {
+    setDocs(prev => prev.map(d => d.id === docId ? { ...d, estado } : d));
+    try {
+      await patchEstado(docId, estado);
+    } catch {
+      // revert on failure
+      setDocs(prev => prev.map(d => d.id === docId ? { ...d, estado: d.estado } : d));
+    }
+  }
 
   if (loading) {
     return (
@@ -82,7 +110,18 @@ export default function Lista() {
                     </td>
                     <td className="py-2.5">{doc.cliente || '—'}</td>
                     <td className="py-2.5 text-gray-600">{doc.fecha || '—'}</td>
-                    <td className="py-2.5 text-xs text-gray-500">{doc.estado || '—'}</td>
+                    <td className="py-2.5">
+                      <select
+                        value={doc.estado || ''}
+                        onChange={e => handleEstadoChange(doc.id, e.target.value)}
+                        className={`bg-transparent border-none text-xs font-bold uppercase tracking-wider focus:outline-none cursor-pointer ${ESTADO_STYLE[doc.estado] ?? 'text-gray-400'}`}
+                      >
+                        {!doc.estado && <option value="">—</option>}
+                        {ESTADOS.map(e => (
+                          <option key={e} value={e}>{e}</option>
+                        ))}
+                      </select>
+                    </td>
                     <td className="py-2.5 text-right">
                       <Link
                         to={`/factura/${doc.id}`}

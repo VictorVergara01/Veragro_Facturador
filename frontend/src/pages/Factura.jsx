@@ -3,6 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import TablaLineas from '../components/TablaLineas';
 import Totales from '../components/Totales';
 
+const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
+const ESTADO_STYLE = {
+  Borrador: 'text-gray-400',
+  Enviada:  'text-blue-600',
+  Pagada:   'text-green-700',
+  Cancelada: 'text-red-500',
+};
+
 export default function Factura() {
   const { id } = useParams();
   const [doc, setDoc] = useState(null);
@@ -12,6 +20,15 @@ export default function Factura() {
   const [itbms, setItbms] = useState(false);
   const [generating, setGenerating] = useState(false);
   const navigate = useNavigate();
+
+  async function handleEstadoChange(estado) {
+    setDoc(prev => ({ ...prev, estado }));
+    await fetch(`/api/documentos/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ estado }),
+    }).catch(() => {});
+  }
 
   useEffect(() => {
     fetch(`/api/documentos/${id}`)
@@ -94,13 +111,25 @@ export default function Factura() {
             { label: 'Monto Total', value: `$${doc.lineas.reduce((s,l)=>s+l.cantidad*l.precio*(1-(l.descuento??0)/100),0).toFixed(2)}`, bold: true },
             { label: 'Fecha', value: doc.fecha || '—' },
             { label: 'Número', value: doc.numero, bold: true },
-            { label: 'Estado', value: doc.estado || '—' },
           ].map(({ label, value, bold }) => (
             <div key={label}>
               <div className="text-xs uppercase tracking-wider text-gray-400 mb-1">{label}</div>
               <div className={bold ? 'font-bold text-lg' : 'text-sm'}>{value}</div>
             </div>
           ))}
+          <div>
+            <div className="text-xs uppercase tracking-wider text-gray-400 mb-1">Estado</div>
+            <select
+              value={doc.estado || ''}
+              onChange={e => handleEstadoChange(e.target.value)}
+              className={`bg-transparent border-none text-sm font-bold focus:outline-none cursor-pointer -ml-0.5 ${ESTADO_STYLE[doc.estado] ?? 'text-gray-400'}`}
+            >
+              {!doc.estado && <option value="">—</option>}
+              {ESTADOS.map(e => (
+                <option key={e} value={e}>{e}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <hr className="border-black mb-4" />

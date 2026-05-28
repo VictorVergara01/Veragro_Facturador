@@ -2,18 +2,18 @@ const { Client } = require('@notionhq/client');
 
 const TIPO_LABELS = {
   'Factura de Servicio': 'FACTURA DE SERVICIO',
-  'Factura': 'FACTURA',
+  'Venta directa': 'FACTURA',
   'Cotización': 'COTIZACIÓN',
 };
 
 const TIPO_PREFIX = {
   'Factura de Servicio': 'SER',
-  'Factura': 'FAC',
+  'Venta directa': 'FAC',
   'Cotización': 'COT',
 };
 
 const TIPO_SELECT = {
-  FAC: 'Factura',
+  FAC: 'Venta directa',
   COT: 'Cotización',
   SER: 'Factura de Servicio',
 };

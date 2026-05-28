@@ -56,6 +56,8 @@ export default function Factura() {
         const d = l.descuento ?? 0;
         return s + l.cantidad * l.precio * (1 - d / 100);
       }, 0) * 100) / 100;
+      const subtotalConDesc = Math.round(subtotalBruto * (1 - descuento / 100) * 100) / 100;
+      const itbmsAmt = itbms ? Math.round(subtotalConDesc * 0.07 * 100) / 100 : 0;
 
       const [pdfResp] = await Promise.all([
         fetch('/api/pdf', {
@@ -67,8 +69,9 @@ export default function Factura() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            descuento: descuento / 100,   // Notion porcentaje espera decimal (0.5 = 50%)
-            subtotal: subtotalBruto,       // bruto antes del descuento global
+            descuento: descuento / 100,
+            subtotal: subtotalBruto,
+            itbmsAmt,
             ...(metodoPago ? { metodoPago } : {}),
           }),
         }),

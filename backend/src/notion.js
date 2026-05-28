@@ -226,6 +226,7 @@ async function updateDocument(notion, pageId, updates) {
   if (updates.fecha) props['Fecha'] = { date: { start: updates.fecha } };
   if (updates.descuento !== undefined) props['Descuento'] = { number: Number(updates.descuento) };
   if (updates.subtotal !== undefined) props['Subtotal'] = { number: Number(updates.subtotal) };
+  if (updates.itbmsAmt !== undefined) props['ITBMS'] = { number: Number(updates.itbmsAmt) };
   if (updates.metodoPago) props['Método de pago'] = { select: { name: updates.metodoPago } };
 
   return notion.pages.update({ page_id: pageId, properties: props });

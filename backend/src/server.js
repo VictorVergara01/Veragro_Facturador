@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const {
   createNotionClient, listDocuments, getDocument, createDocument,
-  updateDocument, addLineItem, updateLineItem, deleteLineItem,
+  updateDocument, addLineItem, updateLineItem, deleteLineItem, deleteDocument,
 } = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
@@ -100,6 +100,16 @@ app.put('/api/lineas/:id', async (req, res) => {
 app.delete('/api/lineas/:id', async (req, res) => {
   try {
     await deleteLineItem(notion, req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/documentos/:id', async (req, res) => {
+  try {
+    await deleteDocument(notion, req.params.id);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

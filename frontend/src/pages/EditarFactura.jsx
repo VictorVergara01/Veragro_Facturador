@@ -110,6 +110,17 @@ export default function EditarFactura() {
     }
   }
 
+  async function handleDeleteDocument() {
+    if (!confirm(`¿Eliminar ${doc.numero}? Esta acción no se puede deshacer.`)) return;
+    try {
+      const resp = await fetch(`/api/documentos/${id}`, { method: 'DELETE' });
+      if (!resp.ok) throw new Error((await resp.json()).error);
+      navigate('/');
+    } catch (e) {
+      alert(`Error: ${e.message}`);
+    }
+  }
+
   function handleCatalogSelect(product) {
     setNewLine({
       sku: product.sku || '',
@@ -379,7 +390,15 @@ export default function EditarFactura() {
           >
             Guardar y ver documento →
           </button>
-          <span className="text-xs text-gray-400">{lineas.length} línea{lineas.length !== 1 ? 's' : ''}</span>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-gray-400">{lineas.length} línea{lineas.length !== 1 ? 's' : ''}</span>
+            <button
+              onClick={handleDeleteDocument}
+              className="text-xs text-red-400 hover:text-red-600 underline transition-colors"
+            >
+              Eliminar documento
+            </button>
+          </div>
         </div>
       </div>
     </div>

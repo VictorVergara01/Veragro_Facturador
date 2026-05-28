@@ -19,7 +19,7 @@ export default function Factura() {
   const [descuento, setDescuento] = useState(0);
   const [itbms, setItbms] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [formato, setFormato] = useState('A4');
+  const [formato, setFormato] = useState('Letter');
   const navigate = useNavigate();
 
   async function handleEstadoChange(estado) {
@@ -203,9 +203,8 @@ export default function Factura() {
                 onChange={e => setFormato(e.target.value)}
                 className="border border-gray-300 bg-white px-2 py-1.5 font-mono text-sm focus:outline-none focus:border-black"
               >
-                <option value="A4">A4</option>
-                <option value="Legal">Legal</option>
                 <option value="Letter">Carta</option>
+                <option value="Legal">Legal</option>
               </select>
             </div>
             <button

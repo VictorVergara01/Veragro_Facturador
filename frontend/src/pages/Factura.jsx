@@ -19,6 +19,7 @@ export default function Factura() {
   const [descuento, setDescuento] = useState(0);
   const [itbms, setItbms] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [formato, setFormato] = useState('A4');
   const navigate = useNavigate();
 
   async function handleEstadoChange(estado) {
@@ -44,7 +45,7 @@ export default function Factura() {
       const resp = await fetch('/api/pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notionId: id, descuento, itbms }),
+        body: JSON.stringify({ notionId: id, descuento, itbms, formato }),
       });
       if (!resp.ok) {
         const err = await resp.json();
@@ -192,6 +193,20 @@ export default function Factura() {
               <label htmlFor="itbms" className="text-sm cursor-pointer select-none">
                 Aplicar ITBMS 7%
               </label>
+            </div>
+            <div>
+              <label className="text-xs uppercase tracking-wider text-gray-500 block mb-1.5">
+                Formato
+              </label>
+              <select
+                value={formato}
+                onChange={e => setFormato(e.target.value)}
+                className="border border-gray-300 bg-white px-2 py-1.5 font-mono text-sm focus:outline-none focus:border-black"
+              >
+                <option value="A4">A4</option>
+                <option value="Legal">Legal</option>
+                <option value="Letter">Carta</option>
+              </select>
             </div>
             <button
               onClick={() => navigate(`/factura/${id}/editar`)}

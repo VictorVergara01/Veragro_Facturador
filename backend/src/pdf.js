@@ -21,25 +21,31 @@ function buildHTML(data) {
     descuento, applyItbms, qrDataUrl,
   } = data;
 
-  const lineasRows = lineas.map((l, i) => `
+  const hasLineDiscounts = lineas.some(l => (l.descuento ?? 0) > 0);
+
+  const lineasRows = lineas.map((l, i) => {
+    const lineDesc = l.descuento ?? 0;
+    const lineTotal = l.cantidad * l.precio * (1 - lineDesc / 100);
+    return `
     <tr>
-      <td>${i + 1}</td>
+      <td class="sku">${esc(l.sku || '—')}</td>
       <td>${esc(l.descripcion)}</td>
       <td class="tr">${l.cantidad}</td>
       <td class="tr">$${fmt(l.precio)}</td>
-      ${descuento > 0 ? `<td class="tr">${descuento}%</td>` : ''}
-      <td class="tr">$${fmt(l.cantidad * l.precio)}</td>
-    </tr>`).join('');
+      ${hasLineDiscounts ? `<td class="tr">${lineDesc > 0 ? lineDesc + '%' : '—'}</td>` : ''}
+      <td class="tr">$${fmt(lineTotal)}</td>
+    </tr>`;
+  }).join('');
 
   const descuentoRow = descuento > 0
-    ? `<div class="trow"><span>Descuento (${descuento}%)</span><span>-$${fmt(descuentoAmt)}</span></div>`
+    ? `<div class="trow"><span>Descuento global (${descuento}%)</span><span>-$${fmt(descuentoAmt)}</span></div>`
     : '';
 
   const itbmsRow = applyItbms
     ? `<div class="trow"><span>ITBMS (7%)</span><span>$${fmt(itbmsAmt)}</span></div>`
     : '';
 
-  const descColTh = descuento > 0
+  const descColTh = hasLineDiscounts
     ? '<th class="tr" style="width:60px">Desc.</th>'
     : '';
 
@@ -78,6 +84,7 @@ table{width:100%;border-collapse:collapse;margin-bottom:16px}
 th{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px;padding:8px 6px;border-bottom:2px solid #000;text-align:left}
 td{padding:6px;border-bottom:1px solid #e8e8e8;font-size:11px}
 .tr{text-align:right}
+.sku{font-size:9px;color:#888;}
 .twrap{display:flex;justify-content:flex-end;margin-bottom:16px}
 .tbox{width:280px}
 .trow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
@@ -143,8 +150,8 @@ td{padding:6px;border-bottom:1px solid #e8e8e8;font-size:11px}
 <table>
   <thead>
     <tr>
-      <th style="width:28px">#</th>
-      <th>Descripción / Servicio</th>
+      <th style="width:90px">SKU</th>
+      <th>Producto / Servicio</th>
       <th class="tr" style="width:55px">Cant.</th>
       <th class="tr" style="width:90px">Precio Unit.</th>
       ${descColTh}
@@ -205,7 +212,10 @@ async function generateQR(url) {
   return QRCode.toDataURL(url, { width: 200, margin: 1 });
 }
 
-async function generatePDF(html) {
+async function generatePDF(html, formato = 'Letter') {
+  const FORMATS = { A4: 'A4', Legal: 'Legal', Letter: 'Letter' };
+  const paperFormat = FORMATS[formato] ?? 'Letter';
+
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     headless: 'new',
@@ -213,7 +223,7 @@ async function generatePDF(html) {
   const page = await browser.newPage();
   await page.setContent(html, { waitUntil: 'networkidle0' });
   const pdf = await page.pdf({
-    format: 'Letter',
+    format: paperFormat,
     printBackground: true,
     margin: { top: '0', right: '0', bottom: '0', left: '0' },
   });

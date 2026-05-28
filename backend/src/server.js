@@ -130,7 +130,7 @@ app.get('/api/documentos/:id', async (req, res) => {
 
 app.post('/api/pdf', async (req, res) => {
   try {
-    const { notionId, descuento = 0, itbms = false } = req.body;
+    const { notionId, descuento = 0, itbms = false, formato = 'Letter' } = req.body;
     const doc = await getDocument(notion, notionId);
     const totals = applyDiscountAndTax(doc.lineas, descuento, itbms);
 
@@ -139,7 +139,7 @@ app.post('/api/pdf', async (req, res) => {
     const qrDataUrl = await generateQR(verifyUrl);
 
     const html = buildHTML({ ...doc, ...totals, descuento, applyItbms: itbms, qrDataUrl });
-    const pdfBuffer = await generatePDF(html);
+    const pdfBuffer = await generatePDF(html, formato);
 
     res.set('Content-Type', 'application/pdf');
     res.set('Content-Disposition', `attachment; filename="${doc.numero}.pdf"`);

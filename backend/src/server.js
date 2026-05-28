@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { createNotionClient, listDocuments, getDocument } = require('./notion');
+const { createNotionClient, listDocuments, getDocument, createDocument } = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
 const { listClientes } = require('./clientes');
@@ -40,6 +40,20 @@ app.post('/api/inventario', async (req, res) => {
     const { sku, nombre, precio } = req.body;
     if (!nombre) return res.status(400).json({ error: 'nombre es requerido' });
     const result = await createInventarioProduct(notion, { sku, nombre, precio });
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/documentos', async (req, res) => {
+  try {
+    const { tipo, clienteId, fecha, notas } = req.body;
+    if (!tipo || !clienteId || !fecha) {
+      return res.status(400).json({ error: 'tipo, clienteId y fecha son requeridos' });
+    }
+    const result = await createDocument(notion, { tipo, clienteId, fecha, notas });
     res.json(result);
   } catch (err) {
     console.error(err);

@@ -9,8 +9,8 @@ async function searchInventario(notion, query) {
     const p = page.properties;
     const titleProp = Object.values(p).find(v => v.type === 'title');
     const nombre = titleProp?.title?.[0]?.plain_text ?? '';
-    const sku = p['SKU']?.rich_text?.[0]?.plain_text ?? '';
-    const precio = p['Precio c/u']?.number ?? p['Precio']?.number ?? 0;
+    const sku = p['SKU_EXT']?.rich_text?.[0]?.plain_text ?? '';
+    const precio = p['Precio']?.number ?? 0;
     return { id: page.id, nombre, sku, precio };
   }).filter(i => i.nombre);
 
@@ -27,8 +27,8 @@ async function createInventarioProduct(notion, { sku, nombre, precio }) {
   const props = {
     [titleProp]: { title: [{ text: { content: nombre } }] },
   };
-  if (sku) props['SKU'] = { rich_text: [{ text: { content: sku } }] };
-  if (precio) props['Precio c/u'] = { number: precio };
+  if (sku) props['SKU_EXT'] = { rich_text: [{ text: { content: sku } }] };
+  if (precio) props['Precio'] = { number: precio };
 
   const page = await notion.pages.create({
     parent: { database_id: process.env.NOTION_DB_INVENTARIO },

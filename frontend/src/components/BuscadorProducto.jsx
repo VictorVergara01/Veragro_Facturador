@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function BuscadorProducto({ onSelect }) {
+export default function BuscadorProducto({ onSelect, autoFocus = false }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [open, setOpen] = useState(false);
@@ -52,6 +52,7 @@ export default function BuscadorProducto({ onSelect }) {
         value={query}
         onChange={e => setQuery(e.target.value)}
         placeholder="Buscar en inventario por nombre o SKU..."
+        autoFocus={autoFocus}
         className="w-full border border-gray-300 px-3 py-2 font-mono text-sm focus:outline-none focus:border-black"
       />
       {loading && (

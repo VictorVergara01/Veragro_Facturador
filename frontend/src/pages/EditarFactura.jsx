@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import BuscadorProducto from '../components/BuscadorProducto';
+import { useToast } from '../components/Toast';
 
 const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
 const ESTADO_COLOR = {
@@ -24,6 +25,9 @@ export default function EditarFactura() {
   const [addingLine, setAddingLine] = useState(false);
   const [fromCatalog, setFromCatalog] = useState(false);
   const [savingEstado, setSavingEstado] = useState(false);
+  const { showToast } = useToast();
+  const [lineStatus, setLineStatus] = useState({});
+  const [searchKey, setSearchKey] = useState(0);
 
   useEffect(() => {
     fetch(`/api/documentos/${id}`)
@@ -45,8 +49,9 @@ export default function EditarFactura() {
         body: JSON.stringify({ estado }),
       });
       setDoc(prev => ({ ...prev, estado }));
-    } catch (e) {
-      alert(`Error: ${e.message}`);
+      showToast(`Estado: ${estado}`);
+    } catch {
+      showToast('Error al cambiar estado', 'error');
     } finally {
       setSavingEstado(false);
     }
@@ -81,37 +86,43 @@ export default function EditarFactura() {
       setLineas(prev => [...prev, linea]);
       setNewLine(emptyLine);
       setFromCatalog(false);
+      setSearchKey(k => k + 1);
+      showToast('Línea añadida');
     } catch (e) {
-      alert(`Error: ${e.message}`);
+      showToast(`Error: ${e.message}`, 'error');
     } finally {
       setAddingLine(false);
     }
   }
 
   async function handleUpdateLine(lineId, field, value) {
+    setLineStatus(prev => ({ ...prev, [lineId]: 'saving' }));
     try {
       await fetch(`/api/lineas/${lineId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [field]: field === 'descripcion' || field === 'sku' ? value : Number(value) }),
       });
-    } catch (e) {
-      alert(`Error guardando: ${e.message}`);
+      setLineStatus(prev => ({ ...prev, [lineId]: 'ok' }));
+      setTimeout(() => setLineStatus(prev => { const n = { ...prev }; delete n[lineId]; return n; }), 800);
+    } catch {
+      setLineStatus(prev => ({ ...prev, [lineId]: 'error' }));
+      showToast('Error al guardar línea', 'error');
+      setTimeout(() => setLineStatus(prev => { const n = { ...prev }; delete n[lineId]; return n; }), 2000);
     }
   }
 
   async function handleDeleteLine(lineId) {
-    if (!confirm('¿Eliminar esta línea?')) return;
     try {
       await fetch(`/api/lineas/${lineId}`, { method: 'DELETE' });
       setLineas(prev => prev.filter(l => l.id !== lineId));
-    } catch (e) {
-      alert(`Error: ${e.message}`);
+      showToast('Línea eliminada');
+    } catch {
+      showToast('Error al eliminar línea', 'error');
     }
   }
 
   async function handleCancelDocument() {
-    if (!confirm(`¿Marcar ${doc.numero} como Cancelada?`)) return;
     try {
       const resp = await fetch(`/api/documentos/${id}`, {
         method: 'PUT',
@@ -120,8 +131,16 @@ export default function EditarFactura() {
       });
       if (!resp.ok) throw new Error((await resp.json()).error);
       setDoc(prev => ({ ...prev, estado: 'Cancelada' }));
+      showToast(`${doc.numero} cancelada`);
     } catch (e) {
-      alert(`Error: ${e.message}`);
+      showToast(`Error: ${e.message}`, 'error');
+    }
+  }
+
+  function handleNewLineKeyDown(e) {
+    if (e.key === 'Enter' && newLine.descripcion.trim() && !addingLine) {
+      e.preventDefault();
+      handleAddLine();
     }
   }
 
@@ -236,7 +255,10 @@ export default function EditarFactura() {
               {lineas.map(l => {
                 const lineTotal = l.cantidad * l.precio * (1 - (l.descuento ?? 0) / 100);
                 return (
-                  <tr key={l.id} className="border-b border-gray-100">
+                  <tr key={l.id} className={`border-b border-gray-100 transition-colors duration-300 ${
+                    lineStatus[l.id] === 'ok' ? 'bg-green-50' :
+                    lineStatus[l.id] === 'error' ? 'bg-red-50' : ''
+                  }`}>
                     <td className="py-1.5 text-gray-400 text-xs">{l.sku || '—'}</td>
                     <td className="py-1.5 text-xs">{l.descripcion}</td>
                     <td className="py-1.5 text-right">
@@ -309,7 +331,11 @@ export default function EditarFactura() {
             <label className="text-xs uppercase tracking-wider text-gray-400 block mb-2">
               Buscar en inventario
             </label>
-            <BuscadorProducto onSelect={handleCatalogSelect} />
+            <BuscadorProducto
+              key={searchKey}
+              onSelect={handleCatalogSelect}
+              autoFocus={true}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -319,6 +345,7 @@ export default function EditarFactura() {
                 type="text"
                 value={newLine.sku}
                 onChange={e => { setNewLine(p => ({ ...p, sku: e.target.value })); setFromCatalog(false); }}
+                onKeyDown={handleNewLineKeyDown}
                 className="w-full border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black bg-white"
               />
             </div>
@@ -330,6 +357,7 @@ export default function EditarFactura() {
                 type="text"
                 value={newLine.descripcion}
                 onChange={e => { setNewLine(p => ({ ...p, descripcion: e.target.value })); setFromCatalog(false); }}
+                onKeyDown={handleNewLineKeyDown}
                 className="w-full border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black bg-white"
               />
             </div>
@@ -344,6 +372,7 @@ export default function EditarFactura() {
                 step="0.01"
                 value={newLine.precio}
                 onChange={e => setNewLine(p => ({ ...p, precio: Number(e.target.value) }))}
+                onKeyDown={handleNewLineKeyDown}
                 className="w-full border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black bg-white"
               />
             </div>
@@ -354,6 +383,7 @@ export default function EditarFactura() {
                 min="1"
                 value={newLine.cantidad}
                 onChange={e => setNewLine(p => ({ ...p, cantidad: Number(e.target.value) }))}
+                onKeyDown={handleNewLineKeyDown}
                 className="w-full border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black bg-white"
               />
             </div>
@@ -365,6 +395,7 @@ export default function EditarFactura() {
                 max="100"
                 value={newLine.descuento}
                 onChange={e => setNewLine(p => ({ ...p, descuento: Number(e.target.value) }))}
+                onKeyDown={handleNewLineKeyDown}
                 className="w-full border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black bg-white"
               />
             </div>

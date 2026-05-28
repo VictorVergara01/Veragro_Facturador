@@ -4,6 +4,7 @@ const cors = require('cors');
 const { createNotionClient, listDocuments, getDocument } = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
+const { listClientes } = require('./clientes');
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,16 @@ app.use(express.json());
 const notion = createNotionClient();
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
+
+app.get('/api/clientes', async (req, res) => {
+  try {
+    const clientes = await listClientes(notion);
+    res.json(clientes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/documentos', async (req, res) => {
   try {

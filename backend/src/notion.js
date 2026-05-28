@@ -26,7 +26,10 @@ async function listDocuments(notion) {
   const resp = await notion.request({
     path: `databases/${process.env.NOTION_DB_VENTAS}/query`,
     method: 'post',
-    body: { sorts: [{ property: 'Fecha', direction: 'descending' }] },
+    body: {
+      sorts: [{ property: 'Fecha', direction: 'descending' }],
+      filter: { property: 'Estado', select: { does_not_equal: 'Cancelada' } },
+    },
   });
 
   // Batch-fetch unique client names to avoid N+1 Notion API calls

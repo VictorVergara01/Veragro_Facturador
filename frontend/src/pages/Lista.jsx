@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useToast } from '../components/Toast';
 
 const TIPO_STYLE = {
   FAC: { label: 'Factura', color: '#c8371a' },
@@ -29,6 +30,7 @@ export default function Lista() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetch('/api/documentos')
@@ -42,9 +44,10 @@ export default function Lista() {
     setDocs(prev => prev.map(d => d.id === docId ? { ...d, estado } : d));
     try {
       await patchEstado(docId, estado);
+      showToast(`Estado: ${estado}`);
     } catch {
-      // revert on failure
       setDocs(prev => prev.map(d => d.id === docId ? { ...d, estado: d.estado } : d));
+      showToast('Error al cambiar estado', 'error');
     }
   }
 

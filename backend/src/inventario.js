@@ -9,7 +9,7 @@ async function searchInventario(notion, query) {
     const p = page.properties;
     const titleProp = Object.values(p).find(v => v.type === 'title');
     const nombre = titleProp?.title?.[0]?.plain_text ?? '';
-    const sku = p['SKU_EXT']?.rich_text?.[0]?.plain_text ?? '';
+    const sku = skuFromProps(p);
     const precio = p['Precio c/u']?.number ?? 0;
     return { id: page.id, nombre, sku, precio };
   }).filter(i => i.nombre);
@@ -46,6 +46,16 @@ async function getInventarioTitleProp(notion) {
   const entry = Object.entries(db.properties).find(([, v]) => v.type === 'title');
   _inventarioTitleProp = entry ? entry[0] : 'Nombre';
   return _inventarioTitleProp;
+}
+
+function skuFromProps(p) {
+  const ext = p['SKU_EXT']?.rich_text?.[0]?.plain_text;
+  if (ext) return ext;
+  const u = p['SKU'];
+  if (u?.type === 'unique_id' && u.unique_id) {
+    return u.unique_id.prefix ? `${u.unique_id.prefix}-${u.unique_id.number}` : String(u.unique_id.number);
+  }
+  return '';
 }
 
 module.exports = { searchInventario, createInventarioProduct };

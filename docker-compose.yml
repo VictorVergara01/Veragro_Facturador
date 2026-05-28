@@ -4,9 +4,6 @@ services:
   backend:
     build: ./backend
     env_file: .env
-    environment:
-      - PORT=3000
-      - FRONTEND_URL=http://localhost
     expose:
       - "3000"
     restart: unless-stopped

@@ -53,6 +53,9 @@ app.post('/api/documentos', async (req, res) => {
     if (!tipo || !clienteId || !fecha) {
       return res.status(400).json({ error: 'tipo, clienteId y fecha son requeridos' });
     }
+    if (!['FAC', 'COT', 'SER'].includes(tipo)) {
+      return res.status(400).json({ error: 'tipo debe ser FAC, COT o SER' });
+    }
     const result = await createDocument(notion, { tipo, clienteId, fecha, notas });
     res.json(result);
   } catch (err) {

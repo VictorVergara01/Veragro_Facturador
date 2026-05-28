@@ -198,7 +198,7 @@ async function createDocument(notion, { tipo, clienteId, fecha, notas }) {
 function computeNextNumber(prefix, allNumbers) {
   const nums = allNumbers
     .filter(n => n.startsWith(`${prefix}-`))
-    .map(n => parseInt(n.split('-')[1], 10))
+    .map(n => parseInt(n.slice(`${prefix}-`.length), 10))
     .filter(n => !isNaN(n));
   const max = nums.length > 0 ? Math.max(...nums) : 0;
   return `${prefix}-${String(max + 1).padStart(3, '0')}`;

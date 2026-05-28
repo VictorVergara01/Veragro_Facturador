@@ -45,10 +45,16 @@ export default function Lista() {
           <span className="text-xs tracking-[0.4em] text-gray-400 mb-0.5">DRONES</span>
         </div>
 
-        <div className="border-b-2 border-black pb-2 mb-6">
+        <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-6">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">
             Documentos — {docs.length} registros
           </h2>
+          <Link
+            to="/nueva"
+            className="px-4 py-1.5 bg-black text-white font-mono text-xs uppercase tracking-widest hover:bg-gray-800 transition-colors"
+          >
+            + Nueva
+          </Link>
         </div>
 
         {docs.length === 0 ? (

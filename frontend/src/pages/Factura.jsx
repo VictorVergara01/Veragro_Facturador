@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import TablaLineas from '../components/TablaLineas';
 import Totales from '../components/Totales';
 
@@ -11,6 +11,7 @@ export default function Factura() {
   const [descuento, setDescuento] = useState(0);
   const [itbms, setItbms] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`/api/documentos/${id}`)
@@ -90,7 +91,7 @@ export default function Factura() {
         {/* Meta */}
         <div className="grid grid-cols-4 gap-4 mb-4">
           {[
-            { label: 'Monto Total', value: `$${doc.lineas.reduce((s,l)=>s+l.cantidad*l.precio,0).toFixed(2)}`, bold: true },
+            { label: 'Monto Total', value: `$${doc.lineas.reduce((s,l)=>s+l.cantidad*l.precio*(1-(l.descuento??0)/100),0).toFixed(2)}`, bold: true },
             { label: 'Fecha', value: doc.fecha || '—' },
             { label: 'Número', value: doc.numero, bold: true },
             { label: 'Estado', value: doc.estado || '—' },
@@ -163,6 +164,12 @@ export default function Factura() {
                 Aplicar ITBMS 7%
               </label>
             </div>
+            <button
+              onClick={() => navigate(`/factura/${id}/editar`)}
+              className="px-6 py-2 border border-black text-black font-mono text-xs uppercase tracking-widest hover:bg-gray-100 transition-colors"
+            >
+              Editar
+            </button>
             <button
               onClick={handleDownloadPDF}
               disabled={generating}

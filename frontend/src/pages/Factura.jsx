@@ -51,12 +51,11 @@ export default function Factura() {
   async function handleDownloadPDF() {
     setGenerating(true);
     try {
-      // Calcular subtotal para guardar en Notion
-      const subtotalBruto = doc.lineas.reduce((s, l) => {
+      // subtotalBruto = suma de líneas con descuento por línea, antes del descuento global
+      const subtotalBruto = Math.round(doc.lineas.reduce((s, l) => {
         const d = l.descuento ?? 0;
         return s + l.cantidad * l.precio * (1 - d / 100);
-      }, 0);
-      const subtotal = Math.round((subtotalBruto * (1 - descuento / 100)) * 100) / 100;
+      }, 0) * 100) / 100;
 
       const [pdfResp] = await Promise.all([
         fetch('/api/pdf', {
@@ -68,8 +67,8 @@ export default function Factura() {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            descuento,
-            subtotal,
+            descuento: descuento / 100,   // Notion porcentaje espera decimal (0.5 = 50%)
+            subtotal: subtotalBruto,       // bruto antes del descuento global
             ...(metodoPago ? { metodoPago } : {}),
           }),
         }),

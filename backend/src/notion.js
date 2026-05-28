@@ -29,26 +29,32 @@ async function listDocuments(notion) {
     body: { sorts: [{ property: 'Fecha', direction: 'descending' }] },
   });
 
-  return Promise.all(resp.results.map(page => mapPageToSummary(notion, page)));
-}
+  // Batch-fetch unique client names to avoid N+1 Notion API calls
+  const clientIds = [...new Set(
+    resp.results
+      .map(p => p.properties['Cliente']?.relation?.[0]?.id)
+      .filter(Boolean)
+  )];
+  const clientNames = {};
+  await Promise.all(clientIds.map(async id => {
+    clientNames[id] = await getPageTitle(notion, id);
+  }));
 
-async function mapPageToSummary(notion, page) {
-  const p = page.properties;
-  const numero = getTitleText(p);
-  const tipoSelect = p['Tipo']?.select?.name ?? '';
-  const tipo = TIPO_PREFIX[tipoSelect] ?? numero.split('-')[0];
-
-  const clienteId = p['Cliente']?.relation?.[0]?.id;
-  const cliente = clienteId ? await getPageTitle(notion, clienteId) : '';
-
-  return {
-    id: page.id,
-    numero,
-    tipo,
-    cliente,
-    fecha: p['Fecha']?.date?.start ?? '',
-    estado: p['Estado']?.select?.name ?? '',
-  };
+  return resp.results.map(page => {
+    const p = page.properties;
+    const numero = getTitleText(p);
+    const tipoSelect = p['Tipo']?.select?.name ?? '';
+    const tipo = TIPO_PREFIX[tipoSelect] ?? numero.split('-')[0];
+    const clienteId = p['Cliente']?.relation?.[0]?.id;
+    return {
+      id: page.id,
+      numero,
+      tipo,
+      cliente: clienteId ? (clientNames[clienteId] ?? '') : '',
+      fecha: p['Fecha']?.date?.start ?? '',
+      estado: p['Estado']?.select?.name ?? '',
+    };
+  });
 }
 
 async function getDocument(notion, pageId) {
@@ -159,7 +165,10 @@ async function createDocument(notion, { tipo, clienteId, fecha, notas }) {
   const resp = await notion.request({
     path: `databases/${process.env.NOTION_DB_VENTAS}/query`,
     method: 'post',
-    body: { page_size: 100 },
+    body: {
+      page_size: 100,
+      filter: { property: 'Tipo', select: { equals: TIPO_SELECT[tipo] } },
+    },
   });
   const allNumbers = resp.results.map(p => getTitleText(p.properties));
   const numero = computeNextNumber(tipo, allNumbers);

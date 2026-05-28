@@ -17,6 +17,7 @@ export default function NuevaFactura() {
   const [loading, setLoading] = useState(false);
   const [loadingClientes, setLoadingClientes] = useState(true);
   const [error, setError] = useState(null);
+  const [siguienteNumero, setSiguienteNumero] = useState('');
 
   useEffect(() => {
     fetch('/api/clientes')
@@ -78,11 +79,18 @@ export default function NuevaFactura() {
           <div className="text-xs uppercase tracking-wider text-gray-400 mb-3">
             Tipo de documento <span className="text-red-500">*</span>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap items-center">
             {TIPOS.map(t => (
               <button
                 key={t.value}
-                onClick={() => setTipo(t.value)}
+                onClick={() => {
+                  setTipo(t.value);
+                  setSiguienteNumero('');
+                  fetch(`/api/siguiente-numero?tipo=${t.value}`)
+                    .then(r => r.json())
+                    .then(d => setSiguienteNumero(d.numero))
+                    .catch(() => {});
+                }}
                 className={`px-6 py-2 text-xs uppercase tracking-widest border-2 font-bold transition-colors ${
                   tipo === t.value
                     ? 'text-white border-transparent'
@@ -93,6 +101,11 @@ export default function NuevaFactura() {
                 {t.label}
               </button>
             ))}
+            {siguienteNumero && (
+              <span className="text-xs text-gray-400 tracking-wider">
+                → se creará como <span className="font-bold text-black">{siguienteNumero}</span>
+              </span>
+            )}
           </div>
         </div>
 

@@ -22,14 +22,15 @@ function createNotionClient() {
   return new Client({ auth: process.env.NOTION_TOKEN });
 }
 
-async function listDocuments(notion) {
+async function listDocuments(notion, incluirCanceladas = false) {
+  const body = { sorts: [{ property: 'Fecha', direction: 'descending' }] };
+  if (!incluirCanceladas) {
+    body.filter = { property: 'Estado', select: { does_not_equal: 'Cancelada' } };
+  }
   const resp = await notion.request({
     path: `databases/${process.env.NOTION_DB_VENTAS}/query`,
     method: 'post',
-    body: {
-      sorts: [{ property: 'Fecha', direction: 'descending' }],
-      filter: { property: 'Estado', select: { does_not_equal: 'Cancelada' } },
-    },
+    body,
   });
 
   // Batch-fetch unique client names to avoid N+1 Notion API calls
@@ -283,9 +284,22 @@ async function deleteLineItem(notion, lineId) {
   return notion.pages.update({ page_id: lineId, archived: true });
 }
 
+async function getNextNumero(notion, tipo) {
+  const resp = await notion.request({
+    path: `databases/${process.env.NOTION_DB_VENTAS}/query`,
+    method: 'post',
+    body: {
+      page_size: 100,
+      filter: { property: 'Tipo', select: { equals: TIPO_SELECT[tipo] } },
+    },
+  });
+  const allNumbers = resp.results.map(p => getTitleText(p.properties));
+  return computeNextNumber(tipo, allNumbers);
+}
+
 module.exports = {
   createNotionClient, listDocuments, getDocument,
-  computeNextNumber, createDocument,
+  computeNextNumber, createDocument, getNextNumero,
   updateDocument, addLineItem, updateLineItem, deleteLineItem,
   getMetodoPagoOpciones,
 };

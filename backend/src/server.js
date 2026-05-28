@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const {
-  createNotionClient, listDocuments, getDocument, createDocument,
+  createNotionClient, listDocuments, getDocument, createDocument, getNextNumero,
   updateDocument, addLineItem, updateLineItem, deleteLineItem,
   getMetodoPagoOpciones,
 } = require('./notion');
@@ -119,9 +119,24 @@ app.delete('/api/lineas/:id', async (req, res) => {
 });
 
 
+app.get('/api/siguiente-numero', async (req, res) => {
+  try {
+    const { tipo } = req.query;
+    if (!['FAC', 'COT', 'SER'].includes(tipo)) {
+      return res.status(400).json({ error: 'tipo debe ser FAC, COT o SER' });
+    }
+    const numero = await getNextNumero(notion, tipo);
+    res.json({ numero });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/documentos', async (req, res) => {
   try {
-    const docs = await listDocuments(notion);
+    const incluirCanceladas = req.query.canceladas === 'true';
+    const docs = await listDocuments(notion, incluirCanceladas);
     res.json(docs);
   } catch (err) {
     console.error(err);

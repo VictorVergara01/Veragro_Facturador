@@ -149,6 +149,7 @@ export default function Factura() {
           {[
             { label: 'Monto Total', value: `$${doc.lineas.reduce((s,l)=>s+l.cantidad*l.precio*(1-(l.descuento??0)/100),0).toFixed(2)}`, bold: true },
             { label: 'Fecha', value: formatDate(doc.fecha) },
+            { label: 'Vencimiento', value: formatDate(doc.vencimiento) },
             { label: 'Número', value: doc.numero, bold: true },
           ].map(({ label, value, bold }) => (
             <div key={label}>

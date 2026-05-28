@@ -31,15 +31,20 @@ export default function Lista() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('');
+  const [verCanceladas, setVerCanceladas] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetch('/api/documentos')
+    setLoading(true);
+    const url = verCanceladas ? '/api/documentos?canceladas=true' : '/api/documentos';
+    fetch(url)
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then(setDocs)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [verCanceladas]);
 
   async function handleEstadoChange(docId, estado) {
     setDocs(prev => prev.map(d => d.id === docId ? { ...d, estado } : d));
@@ -51,6 +56,17 @@ export default function Lista() {
       showToast('Error al cambiar estado', 'error');
     }
   }
+
+  const docsFiltrados = docs.filter(doc => {
+    const q = busqueda.toLowerCase();
+    const matchBusqueda = !q ||
+      doc.numero.toLowerCase().includes(q) ||
+      (doc.cliente || '').toLowerCase().includes(q) ||
+      (doc.estado || '').toLowerCase().includes(q) ||
+      formatDate(doc.fecha).toLowerCase().includes(q);
+    const matchTipo = !tipoFiltro || doc.tipo === tipoFiltro;
+    return matchBusqueda && matchTipo;
+  });
 
   if (loading) {
     return (
@@ -77,9 +93,9 @@ export default function Lista() {
           <span className="text-xs tracking-[0.4em] text-gray-400 mb-0.5">DRONES</span>
         </div>
 
-        <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-6">
+        <div className="flex items-center justify-between border-b-2 border-black pb-2 mb-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-500">
-            Documentos — {docs.length} registros
+            Documentos — {docsFiltrados.length}{docsFiltrados.length !== docs.length ? ` de ${docs.length}` : ''} registros
           </h2>
           <Link
             to="/nueva"
@@ -89,8 +105,42 @@ export default function Lista() {
           </Link>
         </div>
 
-        {docs.length === 0 ? (
-          <p className="text-sm text-gray-400">No hay documentos en la base de datos de Notion.</p>
+        {/* Filtros */}
+        <div className="flex flex-wrap gap-3 mb-5 items-center">
+          <input
+            type="text"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            placeholder="Buscar por número, cliente, fecha..."
+            className="border border-gray-300 px-3 py-1.5 font-mono text-sm focus:outline-none focus:border-black flex-1 min-w-48"
+          />
+          <div className="flex gap-1">
+            {['', 'FAC', 'COT', 'SER'].map(t => (
+              <button
+                key={t}
+                onClick={() => setTipoFiltro(t)}
+                className={`px-3 py-1.5 text-xs uppercase tracking-wider font-bold border transition-colors ${
+                  tipoFiltro === t ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200 hover:border-gray-400'
+                }`}
+              >
+                {t || 'Todos'}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setVerCanceladas(v => !v)}
+            className={`px-3 py-1.5 text-xs uppercase tracking-wider font-bold border transition-colors ${
+              verCanceladas ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-400 border-gray-200 hover:border-gray-400'
+            }`}
+          >
+            {verCanceladas ? '✕ Canceladas' : 'Ver canceladas'}
+          </button>
+        </div>
+
+        {docsFiltrados.length === 0 ? (
+          <p className="text-sm text-gray-400">
+            {busqueda || tipoFiltro ? 'Sin resultados para esta búsqueda.' : 'No hay documentos.'}
+          </p>
         ) : (
           <table className="w-full text-sm">
             <thead>
@@ -104,10 +154,12 @@ export default function Lista() {
               </tr>
             </thead>
             <tbody>
-              {docs.map(doc => {
+              {docsFiltrados.map(doc => {
                 const t = TIPO_STYLE[doc.tipo] ?? { label: doc.tipo, color: '#000' };
                 return (
-                  <tr key={doc.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <tr key={doc.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors ${
+                    doc.estado === 'Cancelada' ? 'opacity-50' : ''
+                  }`}>
                     <td className="py-2.5 font-bold">{doc.numero}</td>
                     <td className="py-2.5 font-bold text-xs" style={{ color: t.color }}>
                       {t.label}

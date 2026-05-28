@@ -26,7 +26,7 @@ function fmtDate(isoDate) {
 function buildHTML(data) {
   const {
     numero, tipoLabel, cliente, ruc, direccion, telefono, email,
-    fecha, estado, notas, referencia,
+    fecha, vencimiento, estado, notas, referencia,
     lineas, subtotalBruto, descuentoAmt, itbmsAmt, total,
     descuento, applyItbms, qrDataUrl, metodoPago,
   } = data;
@@ -93,7 +93,7 @@ body{font-family:'Courier Prime','Courier New',monospace;background:#fff;color:#
 .sub{font-size:10px;letter-spacing:5px;color:#666;margin-top:2px}
 .dtype{font-size:26px;font-weight:700;color:#c8371a;letter-spacing:3px}
 hr{border:none;border-top:1px solid #000;margin:18px 0}
-.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:16px}
+.mgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
 .mlabel{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;color:#555}
 .mval{font-size:13px}
 .mtotal{font-size:20px;font-weight:700}
@@ -138,8 +138,12 @@ tr{page-break-inside:avoid}
     <div class="mval mtotal">$${fmt(total)}</div>
   </div>
   <div>
-    <div class="mlabel">Fecha</div>
+    <div class="mlabel">Fecha de emisión</div>
     <div class="mval">${fmtDate(fecha)}</div>
+  </div>
+  <div>
+    <div class="mlabel">Vencimiento</div>
+    <div class="mval">${fmtDate(vencimiento)}</div>
   </div>
   <div>
     <div class="mlabel">Número</div>

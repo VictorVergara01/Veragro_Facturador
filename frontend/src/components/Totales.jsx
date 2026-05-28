@@ -3,7 +3,10 @@ function round2(n) {
 }
 
 export default function Totales({ lineas, descuento = 0, itbms = false }) {
-  const subtotalBruto = round2(lineas.reduce((s, l) => s + l.cantidad * l.precio, 0));
+  const subtotalBruto = round2(lineas.reduce((s, l) => {
+    const d = l.descuento ?? 0;
+    return s + l.cantidad * l.precio * (1 - d / 100);
+  }, 0));
   const descuentoAmt = round2(subtotalBruto * (descuento / 100));
   const subtotal = round2(subtotalBruto - descuentoAmt);
   const itbmsAmt = itbms ? round2(subtotal * 0.07) : 0;
@@ -18,7 +21,7 @@ export default function Totales({ lineas, descuento = 0, itbms = false }) {
         </div>
         {descuento > 0 && (
           <div className="flex justify-between py-1 border-b border-gray-100">
-            <span className="text-gray-600">Descuento ({descuento}%)</span>
+            <span className="text-gray-600">Descuento global ({descuento}%)</span>
             <span>-${descuentoAmt.toFixed(2)}</span>
           </div>
         )}

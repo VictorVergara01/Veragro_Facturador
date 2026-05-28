@@ -5,6 +5,7 @@ const { createNotionClient, listDocuments, getDocument } = require('./notion');
 const { buildHTML, generateQR, generatePDF } = require('./pdf');
 const { applyDiscountAndTax } = require('./calculateTotals');
 const { listClientes } = require('./clientes');
+const { searchInventario, createInventarioProduct } = require('./inventario');
 
 const app = express();
 app.use(cors());
@@ -18,6 +19,28 @@ app.get('/api/clientes', async (req, res) => {
   try {
     const clientes = await listClientes(notion);
     res.json(clientes);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/inventario', async (req, res) => {
+  try {
+    const items = await searchInventario(notion, req.query.q || '');
+    res.json(items);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/inventario', async (req, res) => {
+  try {
+    const { sku, nombre, precio } = req.body;
+    if (!nombre) return res.status(400).json({ error: 'nombre es requerido' });
+    const result = await createInventarioProduct(notion, { sku, nombre, precio });
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

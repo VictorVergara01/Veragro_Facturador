@@ -23,10 +23,12 @@ function createNotionClient() {
 }
 
 async function listDocuments(notion, incluirCanceladas = false) {
-  const body = { sorts: [{ property: 'Fecha', direction: 'descending' }] };
-  if (!incluirCanceladas) {
-    body.filter = { property: 'Estado', select: { does_not_equal: 'Cancelada' } };
-  }
+  const body = {
+    sorts: [{ property: 'Fecha', direction: 'descending' }],
+    filter: incluirCanceladas
+      ? { property: 'Estado', select: { equals: 'Cancelada' } }
+      : { property: 'Estado', select: { does_not_equal: 'Cancelada' } },
+  };
   const resp = await notion.request({
     path: `databases/${process.env.NOTION_DB_VENTAS}/query`,
     method: 'post',

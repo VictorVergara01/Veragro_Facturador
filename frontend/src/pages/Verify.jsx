@@ -41,7 +41,10 @@ export default function Verify() {
     );
   }
 
-  const subtotal = doc.lineas.reduce((s, l) => s + l.cantidad * l.precio, 0);
+  const subtotal = doc.lineas.reduce((s, l) => {
+    const d = l.descuento ?? 0;
+    return s + l.cantidad * l.precio * (1 - d / 100);
+  }, 0);
 
   return (
     <div className="min-h-screen bg-white font-mono">
@@ -88,7 +91,7 @@ export default function Verify() {
             {doc.lineas.map((l, i) => (
               <div key={i} className="flex justify-between text-xs py-1 border-b border-gray-50">
                 <span className="text-gray-700">{l.descripcion}</span>
-                <span>${(l.cantidad * l.precio).toFixed(2)}</span>
+                <span>${(l.cantidad * l.precio * (1 - (l.descuento ?? 0) / 100)).toFixed(2)}</span>
               </div>
             ))}
           </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import BuscadorProducto from '../components/BuscadorProducto';
 import { useToast } from '../components/Toast';
+import { formatDate } from '../utils';
 
 const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
 const ESTADO_COLOR = {
@@ -208,7 +209,7 @@ export default function EditarFactura() {
           <div>
             <div className="text-xs uppercase tracking-wider text-gray-400 mb-1">Cliente</div>
             <div className="font-bold">{doc.cliente}</div>
-            <div className="text-sm text-gray-500 mt-1">{doc.fecha}</div>
+            <div className="text-sm text-gray-500 mt-1">{formatDate(doc.fecha)}</div>
           </div>
           <div>
             <div className="text-xs uppercase tracking-wider text-gray-400 mb-2">Estado</div>

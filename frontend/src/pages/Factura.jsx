@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import TablaLineas from '../components/TablaLineas';
 import Totales from '../components/Totales';
 import { useToast } from '../components/Toast';
+import { formatDate } from '../utils';
 
 const ESTADOS = ['Borrador', 'Enviada', 'Pagada', 'Cancelada'];
 const ESTADO_STYLE = {
@@ -147,7 +148,7 @@ export default function Factura() {
         <div className="grid grid-cols-4 gap-4 mb-4">
           {[
             { label: 'Monto Total', value: `$${doc.lineas.reduce((s,l)=>s+l.cantidad*l.precio*(1-(l.descuento??0)/100),0).toFixed(2)}`, bold: true },
-            { label: 'Fecha', value: doc.fecha || '—' },
+            { label: 'Fecha', value: formatDate(doc.fecha) },
             { label: 'Número', value: doc.numero, bold: true },
           ].map(({ label, value, bold }) => (
             <div key={label}>

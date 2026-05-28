@@ -13,6 +13,16 @@ function fmt(n) {
   return Number(n).toFixed(2);
 }
 
+const MESES = [
+  'enero','febrero','marzo','abril','mayo','junio',
+  'julio','agosto','septiembre','octubre','noviembre','diciembre',
+];
+function fmtDate(isoDate) {
+  if (!isoDate) return '—';
+  const [year, month, day] = isoDate.split('-');
+  return `${parseInt(day)} de ${MESES[parseInt(month) - 1]} de ${year}`;
+}
+
 function buildHTML(data) {
   const {
     numero, tipoLabel, cliente, ruc, direccion, telefono, email,
@@ -98,15 +108,16 @@ td{padding:6px;border-bottom:1px solid #e8e8e8;font-size:11px}
 .tbox{width:280px}
 .trow{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
 .ttotal{display:flex;justify-content:space-between;border-top:2px solid #000;padding-top:8px;margin-top:4px;font-size:15px;font-weight:700}
-.pqr{display:flex;justify-content:space-between;align-items:flex-end}
 .plabel{font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .prow{font-size:11px;margin-bottom:3px}
 .pk{font-weight:700}
 .qrimg{width:100px;height:100px}
 .qrcap{font-size:8px;color:#999;text-align:center;margin-top:3px}
-.sigs{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:50px}
+.sigs{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:50px;page-break-inside:avoid}
 .sigline{border-top:1px solid #000;padding-top:6px;margin-top:50px;font-size:11px}
 .sigsub{color:#777;font-size:10px;margin-top:2px}
+.pqr{display:flex;justify-content:space-between;align-items:flex-end;page-break-inside:avoid}
+tr{page-break-inside:avoid}
 </style>
 </head>
 <body>
@@ -128,7 +139,7 @@ td{padding:6px;border-bottom:1px solid #e8e8e8;font-size:11px}
   </div>
   <div>
     <div class="mlabel">Fecha</div>
-    <div class="mval">${esc(fecha) || '—'}</div>
+    <div class="mval">${fmtDate(fecha)}</div>
   </div>
   <div>
     <div class="mlabel">Número</div>
@@ -235,7 +246,7 @@ async function generatePDF(html, formato = 'Letter') {
   const pdf = await page.pdf({
     format: paperFormat,
     printBackground: true,
-    margin: { top: '0', right: '0', bottom: '0', left: '0' },
+    margin: { top: '15mm', right: '0', bottom: '15mm', left: '0' },
   });
   await browser.close();
   return pdf;

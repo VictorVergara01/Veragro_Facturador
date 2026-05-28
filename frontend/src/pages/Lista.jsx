@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../components/Toast';
+import { formatDate } from '../utils';
 
 const TIPO_STYLE = {
   FAC: { label: 'Factura', color: '#c8371a' },
@@ -112,7 +113,7 @@ export default function Lista() {
                       {t.label}
                     </td>
                     <td className="py-2.5">{doc.cliente || '—'}</td>
-                    <td className="py-2.5 text-gray-600">{doc.fecha || '—'}</td>
+                    <td className="py-2.5 text-gray-600">{formatDate(doc.fecha)}</td>
                     <td className="py-2.5">
                       <select
                         value={doc.estado || ''}

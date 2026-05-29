@@ -52,8 +52,8 @@ export default function Verify() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="text-2xl font-bold">
-            <span>AGRO</span>
-            <span style={{ color: '#c8f060' }}>TECH</span>
+            <span>VER</span>
+            <span style={{ color: '#c8f060' }}>AGRO</span>
           </div>
           <div className="text-xs tracking-[0.4em] text-gray-400 mt-0.5">DRONES</div>
         </div>
@@ -98,7 +98,7 @@ export default function Verify() {
         )}
 
         <p className="text-xs text-gray-300 text-center">
-          AgroTech Drones — Documento autenticado
+          Veragro Drones — Documento autenticado
         </p>
       </div>
     </div>

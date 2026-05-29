@@ -73,7 +73,7 @@ function buildHTML(data) {
   const banco = process.env.EMPRESA_BANCO ?? 'Banco General';
   const tipoCuenta = process.env.EMPRESA_TIPO_CUENTA ?? 'Corriente';
   const cuenta = process.env.EMPRESA_CUENTA ?? '04-88-888888-8';
-  const cuentaNombre = process.env.EMPRESA_CUENTA_NOMBRE ?? 'AgroTech Drones S.A.';
+  const cuentaNombre = process.env.EMPRESA_CUENTA_NOMBRE ?? 'Veragro Drones S.A.';
   const yappy = process.env.EMPRESA_YAPPY ?? '+507 6000-0000';
   const metodoPagoBlock = metodoPago
     ? `<div class="prow" style="margin-top:6px"><span class="pk">Método de pago:</span> ${esc(metodoPago)}</div>`
@@ -124,7 +124,7 @@ tr{page-break-inside:avoid}
 
 <div class="hdr">
   <div>
-    <div><span class="agro">AGRO</span><span class="tech">TECH</span></div>
+    <div><span class="agro">VER</span><span class="tech">AGRO</span></div>
     <div class="sub">DRONES</div>
   </div>
   <div class="dtype">${esc(tipoLabel)}</div>
@@ -224,7 +224,7 @@ tr{page-break-inside:avoid}
   <div>
     <div class="sigline">
       <div style="font-weight:700">Firma autorizada</div>
-      <div class="sigsub">AgroTech Drones</div>
+      <div class="sigsub">Veragro Drones</div>
     </div>
   </div>
 </div>

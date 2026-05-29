@@ -54,8 +54,8 @@ export default function NuevaFactura() {
     <div className="min-h-screen bg-white p-8 font-mono">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-baseline gap-3 mb-2">
-          <span className="text-4xl font-bold tracking-tight">AGRO</span>
-          <span className="text-4xl font-bold tracking-tight" style={{ color: '#c8f060' }}>TECH</span>
+          <span className="text-4xl font-bold tracking-tight">VER</span>
+          <span className="text-4xl font-bold tracking-tight" style={{ color: '#c8f060' }}>AGRO</span>
           <span className="text-xs tracking-[0.4em] text-gray-400">DRONES</span>
         </div>
         <Link to="/" className="text-xs text-gray-400 underline hover:text-black">

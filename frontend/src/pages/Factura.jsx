@@ -132,8 +132,8 @@ export default function Factura() {
         <div className="flex justify-between items-start mb-6">
           <div>
             <div className="text-3xl font-bold tracking-tight">
-              <span>AGRO</span>
-              <span style={{ color: '#c8f060' }}>TECH</span>
+              <span>VER</span>
+              <span style={{ color: '#c8f060' }}>AGRO</span>
             </div>
             <div className="text-xs tracking-[0.4em] text-gray-400 mt-0.5">DRONES</div>
           </div>

@@ -1,6 +1,6 @@
-# AgroTech Drones — Facturador
+# Veragro Drones — Facturador
 
-Sistema de facturación web full-stack para AgroTech Drones. Lee y escribe documentos (Facturas, Cotizaciones y Facturas de Servicio) en bases de datos de **Notion**, genera PDFs profesionales con código QR de verificación, y gestiona líneas de producto contra un inventario.
+Sistema de facturación web full-stack para Veragro Drones. Lee y escribe documentos (Facturas, Cotizaciones y Facturas de Servicio) en bases de datos de **Notion**, genera PDFs profesionales con código QR de verificación, y gestiona líneas de producto contra un inventario.
 
 ---
 

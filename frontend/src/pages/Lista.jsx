@@ -88,8 +88,7 @@ export default function Lista() {
     <div className="min-h-screen bg-white p-8 font-mono">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-baseline gap-3 mb-10">
-          <span className="text-4xl font-bold tracking-tight">VER</span>
-          <span className="text-4xl font-bold tracking-tight" style={{ color: '#c8f060' }}>AGRO</span>
+          <span className="text-4xl font-bold tracking-tight">VER<span style={{ color: '#c8f060' }}>AGRO</span></span>
           <span className="text-xs tracking-[0.4em] text-gray-400 mb-0.5">DRONES</span>
         </div>
 
